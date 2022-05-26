@@ -1,259 +1,13 @@
-------------------------------------------------
-
--- CHAMS SETTINGS START
-
-getgenv().ChamsTeamColors = false
-getgenv().ChamsEnabled = true
-getgenv().ChamsDepthMode = Enum.HighlightDepthMode.Occluded -- Enum.HighlightDepthMode.Occluded to make it visible only
-getgenv().ChamsFillColor = Color3.fromRGB(10, 10, 10)
-getgenv().ChamsOutlineColor = Color3.fromRGB(85, 105, 230)
-getgenv().ChamsFillTransparency = 0
-getgenv().ChamsOutlineTransparency = 0
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local function CreateHighlight(Player)
-   if (not Player.Character:FindFirstChild("HighlightCham") and Player ~= Players.LocalPlayer) then
-       local Highlight = Instance.new("Highlight", Player.Character)
-       Highlight.Name = "HighlightCham"
-   end
-end
-
-RunService.Stepped:Connect(function()
-    for i,v in next, Players:GetPlayers() do
-        CreateHighlight(v)
-        if (v.Character:FindFirstChild("HighlightCham")) then
-            local Highlight = v.Character.HighlightCham
-            Highlight.Enabled = getgenv().ChamsEnabled
-            Highlight.DepthMode = getgenv().ChamsDepthMode
-            Highlight.FillColor = getgenv().ChamsFillColor
-            Highlight.OutlineColor = getgenv().ChamsOutlineColor
-            Highlight.FillTransparency = getgenv().ChamsFillTransparency
-            Highlight.OutlineTransparency = getgenv().ChamsOutlineTransparency
-            if getgenv().ChamsTeamColors == true then
-                Highlight.FillColor = v.TeamColor.Color
-            end
-        end
-    end
-end)
-
--- CHAMS SETTINGS END
-
-------------------------------------------------
-
--- ESP SETTINGS START
-
-local lplr = game.Players.LocalPlayer
-local camera = game:GetService("Workspace").CurrentCamera
-local CurrentCamera = workspace.CurrentCamera
-local worldToViewportPoint = CurrentCamera.worldToViewportPoint
-local mouse = game.Players.LocalPlayer:GetMouse()
-local UserInput = game:GetService("UserInputService")
-
-function AttachChams(parent, face)
-	local SurfaceGui = Instance.new("SurfaceGui",parent) 
-	SurfaceGui.Parent = parent
-	SurfaceGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	SurfaceGui.Face = Enum.NormalId[face]
-	SurfaceGui.LightInfluence = 0
-	SurfaceGui.ResetOnSpawn = false
-	SurfaceGui.Name = "Body"
-	SurfaceGui.AlwaysOnTop = true
-	local Frame = Instance.new("Frame",SurfaceGui)
-	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	Frame.Size = UDim2.new(1,0,1,0)
-end
-
-getgenv().viperespsettings = {
-    Box = false,
-    Name = false,
-    Tracers = false,
-    Chams = false,
-    Font = 3,
-    Teammates = false,
-    VisibleOnly = false,
-    UnlockTracers = false,
-    TextSize = 16
-}
-
-local function ViperESP(v)
-    local BoxOutline = Drawing.new("Square")
-    BoxOutline.Visible = false
-    BoxOutline.Color = Color3.new(0,0,0)
-    BoxOutline.Thickness = 3
-    BoxOutline.Transparency = 1
-    BoxOutline.Filled = false
-
-    local Box = Drawing.new("Square")
-    Box.Visible = false
-    Box.Color = Color3.new(1,1,1)
-    Box.Thickness = 1
-    Box.Transparency = 1
-    Box.Filled = false
-
-    local HealthBarOutline = Drawing.new("Square")
-    HealthBarOutline.Thickness = 3
-    HealthBarOutline.Filled = false
-    HealthBarOutline.Color = Color3.new(0,0,0)
-    HealthBarOutline.Transparency = 1
-    HealthBarOutline.Visible = false
-
-    local HealthBar = Drawing.new("Square")
-    HealthBar.Thickness = 1
-    HealthBar.Filled = false
-    HealthBar.Transparency = 1
-    HealthBar.Visible = false
-    
-    local Tracer = Drawing.new("Line")
-    Tracer.Visible = false
-    Tracer.Color = Color3.new(1,1,1)
-    Tracer.Thickness = 1
-    Tracer.Transparency = 1
-    
-    local Name = Drawing.new("Text")
-    Name.Transparency = 1
-    Name.Visible = false
-    Name.Color = Color3.new(1,1,1)
-    Name.Size = 12
-    Name.Center = true
-    Name.Outline = true
-    
-
-    local Gun = Drawing.new("Text")
-    Gun.Transparency = 1
-    Gun.Visible = false
-    Gun.Color = Color3.new(1,1,1)
-    Gun.Size = 12
-    Gun.Center = true
-    Gun.Outline = true
-
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
-            local Vector, onScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
-            local Distance = (CurrentCamera.CFrame.p - v.Character.HumanoidRootPart.Position).Magnitude
-            local RootPart = v.Character.HumanoidRootPart
-            local Head = v.Character.Head
-            local RootPosition, RootVis = worldToViewportPoint(CurrentCamera, RootPart.Position)
-            local HeadPosition = worldToViewportPoint(CurrentCamera, Head.Position + Vector3.new(0,0.5,0))
-            local LegPosition = worldToViewportPoint(CurrentCamera, RootPart.Position - Vector3.new(0,3,0))
-                
-            if viperespsettings.Chams and v.Character.Head:FindFirstChild("Body") == nil then
-                for i,v in pairs(v.Character:GetChildren()) do
-                    if v:IsA("MeshPart") or v.Name == "Head" then
-                        AttachChams(v, "Back")
-                        AttachChams(v, "Front")
-                        AttachChams(v, "Top")
-                        AttachChams(v, "Bottom")
-                        AttachChams(v, "Right")
-                        AttachChams(v, "Left")
-                    end
-                end
-            end
-
-            if onScreen then
-                if viperespsettings.Box then
-                    BoxOutline.Size = Vector2.new(2500 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
-                    BoxOutline.Position = Vector2.new(RootPosition.X - BoxOutline.Size.X / 2, RootPosition.Y - BoxOutline.Size.Y / 2)
-                    BoxOutline.Visible = true
-    
-                    Box.Size = Vector2.new(2500 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
-                    Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
-                    Box.Visible = true
-                        
-                    HealthBarOutline.Size = Vector2.new(2, HeadPosition.Y - LegPosition.Y)
-                    HealthBarOutline.Position = BoxOutline.Position - Vector2.new(6,0)
-                    HealthBarOutline.Visible = true
-    
-                    HealthBar.Size = Vector2.new(2, (HeadPosition.Y - LegPosition.Y) / (v.Character.Humanoid.MaxHealth / math.clamp(v.Character.Humanoid.Health, 0,v.Character.Humanoid.MaxHealth)))
-                    HealthBar.Position = Vector2.new(Box.Position.X - 6, Box.Position.Y + (1 / HealthBar.Size.Y))
-                    HealthBar.Color = Color3.fromRGB(255 - 255 / (v.Character.Humanoid.MaxHealth / v.Character.Humanoid.Health), 255 / (v.Character.Humanoid.MaxHealth / v.Character.Humanoid.Health), 0)
-                    HealthBar.Visible = true
-                else
-                    BoxOutline.Visible = false
-                    Box.Visible = false
-                    HealthBarOutline.Visible = false
-                    HealthBar.Visible = false
-                end
-                if viperespsettings.Tracers then
-                    if viperespsettings.UnlockTracers then
-                        Tracer.From = Vector2.new(mouse.X, mouse.Y + 36)
-                    else
-                        Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 1)
-                    end
-                    Tracer.To = Vector2.new(Vector.X, Vector.Y)
-                    Tracer.Visible = true
-                else
-                    Tracer.Visible = false
-                end
-                if viperespsettings.Name then
-                    Name.Text = tostring(v.Name)
-                    Name.Position = Vector2.new(workspace.Camera:WorldToViewportPoint(v.Character.Head.Position).X, workspace.Camera:WorldToViewportPoint(v.Character.Head.Position).Y - 30)
-                    Name.Visible = true
-                    Name.Size = viperespsettings.TextSize
-                    if viperespsettings.Font == "UI" then
-                        Name.Font = 0
-                        Gun.Font = 0
-                    elseif viperespsettings.Font == "System" then
-                        Name.Font = 1
-                        Gun.Font = 1
-                    elseif viperespsettings.Font == "Plex" then
-                        Name.Font = 2
-                        Gun.Font = 2
-                    elseif viperespsettings.Font == "Monospace" then
-                        Name.Font = 3
-                        Gun.Font = 3
-                    end
-                    Gun.Size = viperespsettings.TextSize
-                    Gun.Text = tostring("")
-                    Gun.Position = Vector2.new(LegPosition.X, LegPosition.Y + 10)
-                    Gun.Visible = true
-                else
-                    Name.Visible = false
-                    Gun.Visible = false
-                end
-            else
-                BoxOutline.Visible = false
-                Box.Visible = false
-                HealthBarOutline.Visible = false
-                HealthBar.Visible = false
-                Tracer.Visible = false
-                Name.Visible = false
-                Gun.Visible = false
-            end
-        else
-            BoxOutline.Visible = false
-            Box.Visible = false
-            HealthBarOutline.Visible = false
-            HealthBar.Visible = false
-            Tracer.Visible = false
-            Name.Visible = false
-            Gun.Visible = false
-        end
-    end)
-end
-
-for i,v in pairs(game.Players:GetChildren()) do
-    ViperESP(v)
-end
-
-game.Players.PlayerAdded:Connect(function(v)
-    ViperESP(v)
-end)
-
--- ESP SETTINGS END
-
--------------------------------------------------
-
--- LOADER START
-
+local ChamsVisuals = loadstring(game:HttpGet('https://raw.githubusercontent.com/parkersyn5/viper-main/main/Library/handlers/visuals/Chams.lua'))()
+local CharacterVisuals = loadstring(game:HttpGet('https://raw.githubusercontent.com/parkersyn5/viper-main/main/Library/handlers/visuals/DrawingEsp.lua'))()
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/parkersyn5/viper-main/main/Library/Main.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/parkersyn5/viper-main/main/Library/addons/ThemeManager.lua'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/parkersyn5/viper-main/main/Library/addons/SaveManager.lua'))()
+local LocalPlayerVisuals = loadstring(game:HttpGet('https://raw.githubusercontent.com/parkersyn5/viper-main/main/Library/handlers/visuals/Character.lua'))()
+ChamsVisuals:ToggleChams()
+getgenv().ChamsEnabled = false
 
--- LOADER END
-
--------------------------------------------------
+------------------------------------------------
 
 -- WINDOW START
 
@@ -272,8 +26,7 @@ local Window = Library:CreateWindow({
 local Tabs = {
     Visuals = Window:AddTab('Visuals'),
     
-    
-    
+    Characters = Window:AddTab('Character'),
     
     ['UI Settings'] = Window:AddTab('UI Settings'),
 }
@@ -661,6 +414,46 @@ end)
 
 ------------------------------------------------
 
+-- CHARACTER START
+
+local LVisualsGroupBox = Tabs.Characters:AddLeftGroupbox('Local Visuals')
+
+LVisualsGroupBox:AddToggle('Breadcrumbs', {
+    Text = 'Breadcrumbs',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'Toggles a trail.', -- Information shown when you hover over the toggle
+})
+
+Toggles.Breadcrumbs:OnChanged(function()
+    if Toggles.Breadcrumbs.Value == false then
+        LocalPlayerVisuals:MovementTrail()
+    end
+    if Toggles.Breadcrumbs.Value == false then
+        LocalPlayerVisuals:DisableMovementTrail()
+    end
+end)
+
+--
+
+LVisualsGroupBox:AddSlider('TraillifetimeVAR', {
+    Text = 'Fill Transparency Slider',
+    Default = 3,
+    Min = 0,
+    Max = 15,
+    Rounding = 1,
+    Compact = false,
+})
+
+local Number = Options.TraillifetimeVAR.Value
+
+Options.TraillifetimeVAR:OnChanged(function()
+    _G.traillifetime = Options.TraillifetimeVAR.Value
+end)
+
+-- CHARACTER END
+
+------------------------------------------------
+
 -- SET VALUES START
 
 Toggles.BoxToggle:SetValue(false)
@@ -674,6 +467,7 @@ Toggles.RainbowOutlineColor:SetValue(false)
 Toggles.SyncRainbowColors:SetValue(false)
 Toggles.PulsingChams:SetValue(false)
 Toggles.TeamToggle:SetValue(false)
+Toggles.Breadcrumbs:SetValue(false)
 
 -- SET VALUES END
 
